@@ -5,7 +5,7 @@ class Jogador {
     this.raio = 12;
     this.velocidade = 2.5;
     this.x = col * CELULA + CELULA / 2;
-    this.y = MARGEM_TOPO + lin * CELULA + CELULA / 2;
+    this.y = lin * CELULA + CELULA / 2;
   }
 
   mover(labirinto) {

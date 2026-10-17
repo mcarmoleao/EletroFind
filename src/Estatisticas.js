@@ -1,7 +1,7 @@
-// Guarda e lê o melhor resultado de cada nível, localmente no browser
+// Guarda e lê o melhor tempo de cada nível, localmente no browser
 class Estatisticas {
   constructor() {
-    this.chave = 'eletrofind_estatisticas';
+    this.chave = 'eletrofind_estatisticas_v3';
     this.dados = this.carregar();
   }
 
@@ -23,16 +23,14 @@ class Estatisticas {
     return this.dados[nivel] || null;
   }
 
-  // Mais resíduos é melhor; com os mesmos resíduos, ganha o menor tempo.
-  // Devolve true se for um novo recorde.
-  registar(nivel, residuos, total, tempo) {
+  // Devolve true se o tempo for um novo recorde
+  registar(nivel, tempo) {
     const atual = this.dados[nivel];
-    const melhor = !atual || residuos > atual.residuos ||
-                   (residuos === atual.residuos && tempo < atual.tempo);
-    if (melhor) {
-      this.dados[nivel] = { residuos, total, tempo };
+    if (!atual || tempo < atual.tempo) {
+      this.dados[nivel] = { tempo };
       this.guardar();
+      return true;
     }
-    return melhor;
+    return false;
   }
 }

@@ -1,7 +1,10 @@
 let estado = ESTADO.MENU;
 let ui, stats;
 let menuPrincipal, menuNiveis;
-let labirinto, jogador, imgJogador;
+let labirinto, jogador, contentor, camara, imgJogador;
+let residuos = [];
+let carregados = 0; // resíduos apanhados e ainda não entregues
+let entregues = 0;  // resíduos já no contentor
 let nivelAtual = 0;
 let tempoInicio = 0;
 let ultimoResultado = null;
@@ -40,11 +43,11 @@ function irPara(novoEstado) {
   if (novoEstado === ESTADO.NIVEIS) atualizarMenuNiveis();
 }
 
-// Cada botão de nível mostra o melhor resultado guardado
+// Cada botão de nível mostra o melhor tempo guardado
 function atualizarMenuNiveis() {
   const opcoes = NIVEIS.map((n, i) => {
     const m = stats.melhor(i);
-    return n.nome + '   ·   ' + (m ? 'melhor ' + m.residuos + '/' + m.total + ' · ' + formatarTempo(m.tempo) : 'sem resultado');
+    return n.nome + '   ·   ' + (m ? 'melhor ' + formatarTempo(m.tempo) : 'sem resultado');
   });
   opcoes.push('Voltar');
   menuNiveis.opcoes = opcoes;
@@ -83,9 +86,6 @@ function keyPressed() {
 
     case ESTADO.EXECUCAO:
       if (keyCode === ESCAPE) irPara(ESTADO.NIVEIS);
-      // TEMPORÁRIO: ENTER termina o nível com resíduos aleatórios, para testar
-      // o ecrã de resultado e as estatísticas. Apagar quando houver resíduos a sério.
-      if (keyCode === ENTER) terminarNivel(floor(random(0, 9)), 8);
       break;
 
     case ESTADO.RESULTADO:
@@ -102,21 +102,65 @@ function keyPressed() {
 function iniciarNivel(nivel) {
   nivelAtual = nivel;
   labirinto = new Labirinto(nivel);
-  jogador = new Jogador(INICIO_COL, INICIO_LIN, imgJogador);
+  jogador = new Jogador(labirinto.inicio.col, labirinto.inicio.lin, imgJogador);
+  contentor = new Contentor(labirinto.fim.col, labirinto.fim.lin);
+  residuos = labirinto.posicoesResiduos(NIVEIS[nivel].residuos).map(p => new Residuo(p.col, p.lin));
+    console.log('Resíduos criados:', residuos.length, '| esperados:', NIVEIS[nivel].residuos);
+  carregados = 0;
+  entregues = 0;
+  camara = new Camara();
+  camara.seguir(jogador, labirinto.largura, labirinto.altura, true); // começa já centrada
   tempoInicio = millis();
   estado = ESTADO.EXECUCAO;
 }
 
 function executarJogo() {
-  labirinto.desenhar();
   jogador.mover(labirinto);
-  jogador.desenhar();
-  ui.hud(nivelAtual, millis() - tempoInicio);
+  atualizarResiduos();
+  camara.seguir(jogador, labirinto.largura, labirinto.altura);
+
+  desenharMundo();
+  ui.hud(nivelAtual, millis() - tempoInicio, entregues, residuos.length, carregados);
 }
 
-function terminarNivel(residuos, total) {
+// Recolha e entrega: tocar num resíduo apanha-o, tocar no contentor entrega o que se leva
+function atualizarResiduos() {
+  for (const r of residuos) {
+    if (r.tocadoPor(jogador)) {
+      r.recolhido = true;
+      carregados++;
+    }
+  }
+
+  if (carregados > 0 && contentor.tocadoPor(jogador)) {
+    entregues += carregados;
+    carregados = 0;
+  }
+
+  if (residuos.length > 0 && entregues === residuos.length) terminarNivel();
+}
+
+// Desenha o mapa deslocado pela câmara, cortado à janela de jogo
+function desenharMundo() {
+  push();
+  drawingContext.save();
+  drawingContext.beginPath();
+  drawingContext.rect(0, MARGEM_TOPO, LARGURA, VISTA_ALTURA);
+  drawingContext.clip(); // nada do mapa aparece por cima do HUD e do rodapé
+
+  camara.aplicar();
+  labirinto.desenhar(camara);
+  contentor.desenhar();
+  for (const r of residuos) r.desenhar();
+  jogador.desenhar();
+
+  drawingContext.restore();
+  pop();
+}
+
+function terminarNivel() {
   const tempo = millis() - tempoInicio;
-  const recorde = stats.registar(nivelAtual, residuos, total, tempo);
-  ultimoResultado = { nivel: nivelAtual, residuos, total, tempo, recorde };
+  const recorde = stats.registar(nivelAtual, tempo);
+  ultimoResultado = { nivel: nivelAtual, total: residuos.length, tempo, recorde };
   estado = ESTADO.RESULTADO;
 }

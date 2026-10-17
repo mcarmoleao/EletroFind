@@ -75,9 +75,9 @@ class Interface {
 
     let y = 125;
     y = this.bloco('OBJETIVO', [
-      'Recolhe os resíduos eletrónicos espalhados pelo labirinto.',
-      'Leva-os até ao contentor de reciclagem, no fim do nível.',
-      'A nota depende de quantos resíduos recolheres (A = todos, B = a maioria...).'
+      'Recolhe todos os resíduos azuis espalhados pelo labirinto.',
+      'Leva-os ao contentor (retângulo verde), no fim do nível.',
+      'O labirinto continua para lá do ecrã. O nível acaba quando entregares todos.'
     ], 90, y);
     y = this.bloco('CONTROLOS', [
       'Setas: mover a personagem.',
@@ -99,38 +99,39 @@ class Interface {
     textStyle(BOLD);
     textSize(16);
     fill(...COR.destaque);
-    text('Nível', 180, 140);
-    text('Resíduos', 400, 140);
-    text('Tempo', 580, 140);
+    text('Nível', 220, 140);
+    text('Melhor tempo', 500, 140);
     textStyle(NORMAL);
     textSize(20);
     for (let i = 0; i < TOTAL_NIVEIS; i++) {
       const y = 195 + i * 56;
       const m = stats.melhor(i);
       fill(...COR.texto);
-      text(NIVEIS[i].nome, 180, y);
-      text(m ? m.residuos + ' / ' + m.total : '—', 400, y);
-      text(m ? formatarTempo(m.tempo) : '—', 580, y);
+      text(NIVEIS[i].nome, 220, y);
+      text(m ? formatarTempo(m.tempo) : '—', 500, y);
       stroke(...COR.suave, 80);
-      line(160, y + 28, LARGURA - 160, y + 28);
+      line(200, y + 28, LARGURA - 200, y + 28);
       noStroke();
     }
     pop();
-    this.dica('Melhor resultado de cada nível   ·   ESC para voltar');
+    this.dica('Menor tempo de cada nível   ·   ESC para voltar');
   }
 
-  // Barra no topo durante o jogo
-  hud(nivel, tempo) {
+
+  // Barra no topo durante o jogo (fica fixa, não acompanha a câmara)
+  hud(nivel, tempo, entregues, total, carregados) {
     push();
-    fill(...COR.texto);
     textSize(16);
     textAlign(LEFT, CENTER);
-    text(NIVEIS[nivel].nome, 16, MARGEM_TOPO / 2);
+    fill(...COR.texto);
+    text(NIVEIS[nivel].nome + '  ·  ESC: sair', 16, MARGEM_TOPO / 2);
     textAlign(CENTER, CENTER);
-    text('Tempo ' + formatarTempo(tempo), LARGURA / 2, MARGEM_TOPO / 2);
+    fill(...COR.residuo);
+    text('Entregues ' + entregues + '/' + total + (carregados > 0 ? '  ·  a levar ' + carregados : ''),
+         LARGURA / 2, MARGEM_TOPO / 2);
     textAlign(RIGHT, CENTER);
-    fill(...COR.suave);
-    text('ESC: sair', LARGURA - 16, MARGEM_TOPO / 2);
+    fill(...COR.texto);
+    text(formatarTempo(tempo) + ' min', LARGURA - 16, MARGEM_TOPO / 2);
     pop();
   }
 
@@ -141,7 +142,7 @@ class Interface {
     textAlign(CENTER, CENTER);
     textSize(22);
     text(NIVEIS[r.nivel].nome, LARGURA / 2, 230);
-    text('Resíduos recolhidos: ' + r.residuos + ' / ' + r.total, LARGURA / 2, 275);
+    text('Resíduos entregues: ' + r.total, LARGURA / 2, 275);
     text('Tempo: ' + formatarTempo(r.tempo), LARGURA / 2, 310);
     if (r.recorde) {
       fill(...COR.destaque);

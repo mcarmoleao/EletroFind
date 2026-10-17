@@ -8,17 +8,13 @@ const ESTADO = {
   RESULTADO: 'resultado'
 };
 
-// Grelha do labirinto: 21 colunas x 13 linhas de 40 px
-const COLUNAS = 21;
-const LINHAS = 13;
+// Janela do jogo: canvas com uma faixa em cima (HUD) e outra em baixo (rodapé)
 const CELULA = 40;
-const MARGEM_TOPO = 40; // espaço para o HUD; o rodapé usa a margem de baixo
-const LARGURA = COLUNAS * CELULA;                 // 840
-const ALTURA = LINHAS * CELULA + 2 * MARGEM_TOPO; // 600
-
-// Início e fim de todos os níveis (coluna, linha)
-const INICIO_COL = 1, INICIO_LIN = 1;
-const FIM_COL = 19, FIM_LIN = 11;
+const LARGURA = 840;
+const ALTURA = 600;
+const MARGEM_TOPO = 40;
+const MARGEM_BASE = 40;
+const VISTA_ALTURA = ALTURA - MARGEM_TOPO - MARGEM_BASE; // zona onde se vê o labirinto
 
 // Paleta (arrays RGB, porque color() só existe depois de o p5 arrancar)
 const COR = {
@@ -26,7 +22,11 @@ const COR = {
   botao: [40, 84, 74],
   destaque: [255, 200, 60],
   texto: [240, 245, 240],
-  suave: [160, 190, 180]
+  suave: [160, 190, 180],
+  parede: [60, 90, 80],
+  chao: [30, 45, 55],
+  residuo: [70, 150, 255],
+  contentor: [80, 200, 120]
 };
 
 // Textos do rodapé obrigatório
