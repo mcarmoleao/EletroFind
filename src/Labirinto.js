@@ -1,8 +1,9 @@
 // O mapa de um nível: matriz de 0 e 1, desenho, colisões e colocação dos resíduos
 class Labirinto {
-  constructor(nivel) {
-    // Converte o mapa do nível numa matriz: 1 = parede, 0 = corredor
-    this.mapa = NIVEIS[nivel].mapa.map(linha => linha.split('').map(c => (c === '#' ? 1 : 0)));
+  // definicao = { nome, mapa: [textos], residuos: [{ col, lin }] (opcional) }
+  constructor(definicao) {
+    // Converte o mapa numa matriz: 1 = parede, 0 = corredor
+    this.mapa = definicao.mapa.map(linha => linha.split('').map(c => (c === '#' ? 1 : 0)));
     this.linhas = this.mapa.length;
     this.colunas = this.mapa[0].length;
     this.largura = this.colunas * CELULA;
@@ -40,7 +41,8 @@ class Labirinto {
     return abs(a.col - b.col) + abs(a.lin - b.lin);
   }
 
-  // Escolhe células livres ao acaso, afastadas entre si, do início e do contentor
+  // Usado no Desafio aleatório: escolhe células livres ao acaso,
+  // afastadas entre si, do início e do contentor
   posicoesResiduos(quantidade) {
     const livres = [];
     for (let lin = 0; lin < this.linhas; lin++) {

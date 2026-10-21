@@ -119,12 +119,12 @@ class Interface {
 
 
   // Barra no topo durante o jogo (fica fixa, não acompanha a câmara)
-  hud(nivel, tempo, entregues, total, carregados) {
+  hud(nome, tempo, entregues, total, carregados) {
     push();
     textSize(16);
     textAlign(LEFT, CENTER);
     fill(...COR.texto);
-    text(NIVEIS[nivel].nome + '  ·  ESC: sair', 16, MARGEM_TOPO / 2);
+    text(nome + '  ·  ESC: sair', 16, MARGEM_TOPO / 2);
     textAlign(CENTER, CENTER);
     fill(...COR.residuo);
     text('Entregues ' + entregues + '/' + total + (carregados > 0 ? '  ·  a levar ' + carregados : ''),
@@ -141,7 +141,7 @@ class Interface {
     fill(...COR.texto);
     textAlign(CENTER, CENTER);
     textSize(22);
-    text(NIVEIS[r.nivel].nome, LARGURA / 2, 230);
+    text(r.nome, LARGURA / 2, 230);
     text('Resíduos entregues: ' + r.total, LARGURA / 2, 275);
     text('Tempo: ' + formatarTempo(r.tempo), LARGURA / 2, 310);
     if (r.recorde) {

@@ -6,6 +6,8 @@ let residuos = [];
 let carregados = 0; // resíduos apanhados e ainda não entregues
 let entregues = 0;  // resíduos já no contentor
 let nivelAtual = 0;
+let definicao = null;   // o nível a decorrer: { nome, mapa, residuos }
+let modoDesafio = false; // true no Desafio aleatório (não guarda tempos)
 let tempoInicio = 0;
 let ultimoResultado = null;
 
@@ -43,12 +45,13 @@ function irPara(novoEstado) {
   if (novoEstado === ESTADO.NIVEIS) atualizarMenuNiveis();
 }
 
-// Cada botão de nível mostra o melhor tempo guardado
+// Os níveis mostram o melhor tempo guardado; depois vêm o desafio aleatório e o botão Voltar
 function atualizarMenuNiveis() {
   const opcoes = NIVEIS.map((n, i) => {
     const m = stats.melhor(i);
     return n.nome + '   ·   ' + (m ? 'melhor ' + formatarTempo(m.tempo) : 'sem resultado');
   });
+  opcoes.push('Desafio aleatório   ·   mapa novo de cada vez');
   opcoes.push('Voltar');
   menuNiveis.opcoes = opcoes;
 }
@@ -73,7 +76,9 @@ function keyPressed() {
 
     case ESTADO.NIVEIS:
       if (navegar(menuNiveis)) {
-        if (menuNiveis.selecionada < TOTAL_NIVEIS) iniciarNivel(menuNiveis.selecionada);
+        const escolha = menuNiveis.selecionada;
+        if (escolha < TOTAL_NIVEIS) iniciarNivel(escolha);
+        else if (escolha === TOTAL_NIVEIS) iniciarDesafio();
         else irPara(ESTADO.MENU);
       }
       if (keyCode === ESCAPE) irPara(ESTADO.MENU);
@@ -99,13 +104,30 @@ function keyPressed() {
 
 // ---------- Jogo ----------
 
+// Nível fixo: o mapa e os resíduos vêm do niveis.js, iguais em todas as partidas
 function iniciarNivel(nivel) {
   nivelAtual = nivel;
-  labirinto = new Labirinto(nivel);
+  iniciarJogo(NIVEIS[nivel], false);
+}
+
+// Desafio aleatório: mapa e resíduos novos de cada vez
+function iniciarDesafio() {
+  const colunas = 2 * floor(random(15, 23)) + 1; // ímpar, entre 31 e 45
+  const linhas = 2 * floor(random(10, 14)) + 1;  // ímpar, entre 21 e 27
+  iniciarJogo({ nome: 'Desafio aleatório', mapa: gerarLabirinto(colunas, linhas, 0.06) }, true);
+}
+
+function iniciarJogo(def, desafio) {
+  definicao = def;
+  modoDesafio = desafio;
+  labirinto = new Labirinto(def);
   jogador = new Jogador(labirinto.inicio.col, labirinto.inicio.lin, imgJogador);
   contentor = new Contentor(labirinto.fim.col, labirinto.fim.lin);
-  residuos = labirinto.posicoesResiduos(NIVEIS[nivel].residuos).map(p => new Residuo(p.col, p.lin));
-    console.log('Resíduos criados:', residuos.length, '| esperados:', NIVEIS[nivel].residuos);
+
+  // Níveis fixos têm os resíduos definidos; no desafio sorteiam-se
+  const posicoes = def.residuos || labirinto.posicoesResiduos(floor(random(8, 13)));
+  residuos = posicoes.map(p => new Residuo(p.col, p.lin));
+
   carregados = 0;
   entregues = 0;
   camara = new Camara();
@@ -120,7 +142,7 @@ function executarJogo() {
   camara.seguir(jogador, labirinto.largura, labirinto.altura);
 
   desenharMundo();
-  ui.hud(nivelAtual, millis() - tempoInicio, entregues, residuos.length, carregados);
+  ui.hud(definicao.nome, millis() - tempoInicio, entregues, residuos.length, carregados);
 }
 
 // Recolha e entrega: tocar num resíduo apanha-o, tocar no contentor entrega o que se leva
@@ -160,7 +182,8 @@ function desenharMundo() {
 
 function terminarNivel() {
   const tempo = millis() - tempoInicio;
-  const recorde = stats.registar(nivelAtual, tempo);
-  ultimoResultado = { nivel: nivelAtual, total: residuos.length, tempo, recorde };
+  // O desafio aleatório não guarda tempos: cada mapa é diferente, não são comparáveis
+  const recorde = modoDesafio ? false : stats.registar(nivelAtual, tempo, residuos.length);
+  ultimoResultado = { nome: definicao.nome, total: residuos.length, tempo, recorde };
   estado = ESTADO.RESULTADO;
 }

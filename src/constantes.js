@@ -31,4 +31,4 @@ const COR = {
 
 // Textos do rodapé obrigatório
 const TEMA = 'Electronic Waste Collection';
-const AUTOR = 'Maria do Carmo · N.º 00000 · ECGM'; // troca pelo teu número de aluno
+const AUTOR = 'Maria do Carmo · N.º 30382 · ECGM';
