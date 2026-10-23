@@ -81,12 +81,13 @@ class Interface {
     ], 90, y);
     y = this.bloco('CONTROLOS', [
       'Setas: mover a personagem.',
-      'Grito no microfone: emite uma onda sonora.',
+      'Permite o microfone e faz um som alto para emitir uma onda.',
       'ENTER: confirmar   ·   ESC: voltar atrás.'
     ], 90, y);
     this.bloco('REGRAS', [
-      'A onda revela, durante alguns segundos, o caminho até aos resíduos que atravessar.',
-      'Depois de gritares, tens de esperar um tempo de recarga para voltar a usar a onda.',
+      'A onda circular revela um caminho tracejado quando atinge um resíduo.',
+      'O caminho desvanece à medida que o percorres; entre alvos simultâneos, escolhe o mais fácil.',
+      'Depois de gritares, espera 7 segundos para voltar a usar a onda.',
       'O melhor resultado de cada nível fica guardado neste computador.'
     ], 90, y);
     this.dica('ESC para voltar');
@@ -153,7 +154,7 @@ class Interface {
   }
 
   // Tema em baixo à esquerda, autor em baixo à direita
-  rodape() {
+  rodape(textoCentro = '') {
     push();
     fill(...COR.suave);
     textSize(12);
@@ -161,6 +162,12 @@ class Interface {
     text(TEMA, 16, ALTURA - 12);
     textAlign(RIGHT, BOTTOM);
     text(AUTOR, LARGURA - 16, ALTURA - 12);
+    if (textoCentro) {
+      textAlign(CENTER, BOTTOM);
+      fill(...COR.destaque);
+      textSize(11);
+      text(textoCentro, LARGURA / 2, ALTURA - 12);
+    }
     pop();
   }
 }

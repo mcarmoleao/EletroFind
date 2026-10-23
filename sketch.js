@@ -1,5 +1,5 @@
 let estado = ESTADO.MENU;
-let ui, stats;
+let ui, stats, gestorAudio, onda;
 let menuPrincipal, menuNiveis;
 let labirinto, jogador, contentor, camara, imgJogador;
 let residuos = [];
@@ -15,6 +15,8 @@ function setup() {
   createCanvas(LARGURA, ALTURA);
   ui = new Interface();
   stats = new Estatisticas();
+  gestorAudio = new GestorAudio();
+  onda = new Onda();
   menuPrincipal = new Menu(['Jogar', 'Como jogar', 'Estatísticas']);
   menuNiveis = new Menu([], 480);
 
@@ -26,6 +28,11 @@ function setup() {
 function draw() {
   ui.fundo();
 
+  const agora = millis();
+  const podeEmitir = estado === ESTADO.EXECUCAO && onda.podeEmitir(agora);
+  const grito = gestorAudio.detetarGrito(podeEmitir);
+  if (grito) onda.emitir(jogador, labirinto, agora);
+
   switch (estado) {
     case ESTADO.MENU:         ui.menuPrincipal(menuPrincipal); break;
     case ESTADO.NIVEIS:       ui.selecaoNivel(menuNiveis);     break;
@@ -35,7 +42,10 @@ function draw() {
     case ESTADO.RESULTADO:    ui.resultado(ultimoResultado);   break;
   }
 
-  ui.rodape();
+  const estadoPoder = estado === ESTADO.EXECUCAO
+    ? 'Grito: ' + gestorAudio.rotulo() + ' · onda ' + onda.rotulo(agora)
+    : '';
+  ui.rodape(estadoPoder);
 }
 
 // ---------- Navegação entre ecrãs ----------
@@ -118,6 +128,8 @@ function iniciarDesafio() {
 }
 
 function iniciarJogo(def, desafio) {
+  gestorAudio.iniciar();
+  onda.resetar();
   definicao = def;
   modoDesafio = desafio;
   labirinto = new Labirinto(def);
@@ -138,6 +150,7 @@ function iniciarJogo(def, desafio) {
 
 function executarJogo() {
   jogador.mover(labirinto);
+  onda.atualizar(millis(), jogador, labirinto, residuos);
   atualizarResiduos();
   camara.seguir(jogador, labirinto.largura, labirinto.altura);
 
@@ -174,6 +187,7 @@ function desenharMundo() {
   labirinto.desenhar(camara);
   contentor.desenhar();
   for (const r of residuos) r.desenhar();
+  onda.desenhar(millis());
   jogador.desenhar();
 
   drawingContext.restore();
