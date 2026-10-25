@@ -4,6 +4,7 @@ const ESTADO = {
   NIVEIS: 'niveis',
   COMO_JOGAR: 'comoJogar',
   ESTATISTICAS: 'estatisticas',
+  CALIBRACAO: 'calibracao',
   EXECUCAO: 'execucao',
   RESULTADO: 'resultado'
 };
@@ -12,7 +13,7 @@ const ESTADO = {
 const CELULA = 40;
 const LARGURA = 840;
 const ALTURA = 600;
-const MARGEM_TOPO = 40;
+const MARGEM_TOPO = 72;
 const MARGEM_BASE = 40;
 const VISTA_ALTURA = ALTURA - MARGEM_TOPO - MARGEM_BASE; // zona onde se vê o labirinto
 

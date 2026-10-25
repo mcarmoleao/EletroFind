@@ -81,13 +81,14 @@ class Interface {
     ], 90, y);
     y = this.bloco('CONTROLOS', [
       'Setas: mover a personagem.',
-      'Permite o microfone e faz um som alto para emitir uma onda.',
+      'Ao começar, mantém silêncio 3 s para calibrar; depois, faz som alto.',
       'ENTER: confirmar   ·   ESC: voltar atrás.'
     ], 90, y);
     this.bloco('REGRAS', [
       'A onda circular revela um caminho tracejado quando atinge um resíduo.',
       'O caminho desvanece à medida que o percorres; entre alvos simultâneos, escolhe o mais fácil.',
-      'Depois de gritares, espera 7 segundos para voltar a usar a onda.',
+      'A barra MIC mostra o nível e os limiares de rearmar e disparar.',
+      'Depois de gritares, espera 10 segundos para voltar a usar a onda.',
       'O melhor resultado de cada nível fica guardado neste computador.'
     ], 90, y);
     this.dica('ESC para voltar');
@@ -120,7 +121,26 @@ class Interface {
 
 
   // Barra no topo durante o jogo (fica fixa, não acompanha a câmara)
-  hud(nome, tempo, entregues, total, carregados) {
+  calibracao(progresso, audio) {
+    this.titulo('Calibração do microfone', 175, 36);
+    push();
+    fill(...COR.texto);
+    textAlign(CENTER, CENTER);
+    textSize(17);
+    text('Mantém silêncio enquanto medimos o ruído ambiente.', LARGURA / 2, 230);
+    text('Nível atual: ' + audio.nivel.toFixed(3), LARGURA / 2, 275);
+    noStroke();
+    fill(...COR.suave);
+    rect(LARGURA / 2 - 150, 305, 300, 14, 7);
+    fill(...COR.destaque);
+    rect(LARGURA / 2 - 150, 305, 300 * progresso, 14, 7);
+    textSize(13);
+    fill(...COR.texto);
+    text(Math.floor(progresso * 100) + '%', LARGURA / 2, 340);
+    pop();
+  }
+
+  hud(nome, tempo, entregues, total, carregados, audio, progressoCooldown) {
     push();
     textSize(16);
     textAlign(LEFT, CENTER);
@@ -133,6 +153,38 @@ class Interface {
     textAlign(RIGHT, CENTER);
     fill(...COR.texto);
     text(formatarTempo(tempo) + ' min', LARGURA - 16, MARGEM_TOPO / 2);
+
+    const larguraMic = 190;
+    const escalaMic = Math.max(0.5, audio.limiarDisparo * 1.2, audio.nivel * 1.2);
+    const micX = 48;
+    const barraY = MARGEM_TOPO - 16;
+    const micLargura = constrain(audio.nivel / escalaMic, 0, 1) * larguraMic;
+    const rearmarX = micX + constrain(audio.limiarRearme / escalaMic, 0, 1) * larguraMic;
+    const disparoX = micX + constrain(audio.limiarDisparo / escalaMic, 0, 1) * larguraMic;
+    textAlign(LEFT, CENTER);
+    textSize(9);
+    fill(...COR.suave);
+    text('MIC', 16, barraY);
+    noStroke();
+    fill(60, 75, 70);
+    rect(micX, barraY - 3, larguraMic, 6, 3);
+    fill(...(audio.disponivel ? COR.residuo : COR.suave));
+    rect(micX, barraY - 3, micLargura, 6, 3);
+    stroke(120, 220, 150);
+    line(rearmarX, barraY - 5, rearmarX, barraY + 5);
+    stroke(255, 140, 80);
+    line(disparoX, barraY - 5, disparoX, barraY + 5);
+    noStroke();
+    fill(...COR.suave);
+    text('rearmar  |  disparar', micX + larguraMic + 7, barraY);
+
+    const cooldownX = 590;
+    const cooldownLargura = 230;
+    text('ONDA', 550, barraY);
+    fill(60, 75, 70);
+    rect(cooldownX, barraY - 3, cooldownLargura, 6, 3);
+    fill(...COR.destaque);
+    rect(cooldownX, barraY - 3, cooldownLargura * progressoCooldown, 6, 3);
     pop();
   }
 

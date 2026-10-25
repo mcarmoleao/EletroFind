@@ -23,6 +23,10 @@ class Onda {
 		return agora - this.ultimaEmissao >= this.cooldown;
 	}
 
+	progressoCooldown(agora) {
+		return constrain((agora - this.ultimaEmissao) / this.cooldown, 0, 1);
+	}
+
 	emitir(jogador, labirinto, agora) {
 		if (!this.podeEmitir(agora)) return false;
 

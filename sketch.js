@@ -30,6 +30,9 @@ function draw() {
   ui.fundo();
 
   const agora = millis();
+  if (estado === ESTADO.CALIBRACAO) {
+    if (gestorAudio.erro || gestorAudio.atualizarCalibracao()) iniciarExecucao();
+  }
   const podeEmitir = estado === ESTADO.EXECUCAO && onda.podeEmitir(agora);
   const grito = gestorAudio.detetarGrito(podeEmitir);
   if (grito) onda.emitir(jogador, labirinto, agora);
@@ -39,6 +42,7 @@ function draw() {
     case ESTADO.NIVEIS:       ui.selecaoNivel(menuNiveis);     break;
     case ESTADO.COMO_JOGAR:   ui.comoJogar();                  break;
     case ESTADO.ESTATISTICAS: ui.estatisticas(stats);          break;
+    case ESTADO.CALIBRACAO:   ui.calibracao(gestorAudio.progressoCalibracao(), gestorAudio.telemetria()); break;
     case ESTADO.EXECUCAO:     executarJogo();                  break;
     case ESTADO.RESULTADO:    ui.resultado(ultimoResultado);   break;
   }
@@ -107,6 +111,14 @@ function keyPressed() {
       }
       break;
 
+    case ESTADO.CALIBRACAO:
+      if (keyCode === ESCAPE) {
+        gestorAudio.pararMusica();
+        estado = ESTADO.NIVEIS;
+        atualizarMenuNiveis();
+      }
+      break;
+
     case ESTADO.RESULTADO:
       if (keyCode === ENTER || keyCode === ESCAPE) irPara(ESTADO.NIVEIS);
       break;
@@ -133,7 +145,6 @@ function iniciarDesafio() {
 
 function iniciarJogo(def, desafio) {
   gestorAudio.iniciar();
-  gestorAudio.iniciarMusica(desafio);
   onda.resetar();
   definicao = def;
   modoDesafio = desafio;
@@ -149,6 +160,11 @@ function iniciarJogo(def, desafio) {
   entregues = 0;
   camara = new Camara();
   camara.seguir(jogador, labirinto.largura, labirinto.altura, true); // começa já centrada
+  estado = ESTADO.CALIBRACAO;
+}
+
+function iniciarExecucao() {
+  gestorAudio.iniciarMusica(modoDesafio);
   tempoInicio = millis();
   estado = ESTADO.EXECUCAO;
 }
@@ -160,7 +176,15 @@ function executarJogo() {
   camara.seguir(jogador, labirinto.largura, labirinto.altura);
 
   desenharMundo();
-  ui.hud(definicao.nome, millis() - tempoInicio, entregues, residuos.length, carregados);
+  ui.hud(
+    definicao.nome,
+    millis() - tempoInicio,
+    entregues,
+    residuos.length,
+    carregados,
+    gestorAudio.telemetria(),
+    onda.progressoCooldown(millis())
+  );
 }
 
 // Recolha e entrega: tocar num resíduo apanha-o, tocar no contentor entrega o que se leva
