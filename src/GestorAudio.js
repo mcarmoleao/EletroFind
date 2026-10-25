@@ -7,6 +7,52 @@ class GestorAudio {
 		this.erro = false;
 		this.armado = true;
 		this.limiar = 0.12;
+		this.sons = {};
+		this.musicaSelecionada = null;
+	}
+
+	carregarSons() {
+		const ficheiros = {
+			backgroundMusic: 'assets/backgroundMusic.mp3',
+			challengeMusic: 'assets/challengeMusic.mp3',
+			itemPickUp: 'assets/itemPickUp.mp3',
+			itemDrop: 'assets/itemDrop.mp4',
+			endLevel: 'assets/endLevel.mp3'
+		};
+
+		for (const [nome, caminho] of Object.entries(ficheiros)) {
+			this.sons[nome] = loadSound(
+				caminho,
+				() => this.iniciarMusicaCarregada(nome),
+				erro => console.error('Não foi possível carregar o som "' + caminho + '".', erro)
+			);
+		}
+	}
+
+	iniciarMusica(desafio) {
+		this.musicaSelecionada = desafio ? 'challengeMusic' : 'backgroundMusic';
+		this.iniciarMusicaCarregada(this.musicaSelecionada);
+	}
+
+	iniciarMusicaCarregada(nome) {
+		if (nome !== this.musicaSelecionada) return;
+
+		const musica = this.sons[nome];
+		if (!musica || !musica.isLoaded() || musica.isPlaying()) return;
+
+		musica.setVolume(0.35);
+		musica.loop();
+	}
+
+	pararMusica() {
+		const musica = this.sons[this.musicaSelecionada];
+		this.musicaSelecionada = null;
+		if (musica && musica.isPlaying()) musica.stop();
+	}
+
+	tocarEfeito(nome) {
+		const som = this.sons[nome];
+		if (som && som.isLoaded()) som.play();
 	}
 
 	iniciar() {

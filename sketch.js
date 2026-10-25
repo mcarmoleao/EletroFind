@@ -16,6 +16,7 @@ function setup() {
   ui = new Interface();
   stats = new Estatisticas();
   gestorAudio = new GestorAudio();
+  gestorAudio.carregarSons();
   onda = new Onda();
   menuPrincipal = new Menu(['Jogar', 'Como jogar', 'Estatísticas']);
   menuNiveis = new Menu([], 480);
@@ -100,7 +101,10 @@ function keyPressed() {
       break;
 
     case ESTADO.EXECUCAO:
-      if (keyCode === ESCAPE) irPara(ESTADO.NIVEIS);
+      if (keyCode === ESCAPE) {
+        gestorAudio.pararMusica();
+        irPara(ESTADO.NIVEIS);
+      }
       break;
 
     case ESTADO.RESULTADO:
@@ -129,6 +133,7 @@ function iniciarDesafio() {
 
 function iniciarJogo(def, desafio) {
   gestorAudio.iniciar();
+  gestorAudio.iniciarMusica(desafio);
   onda.resetar();
   definicao = def;
   modoDesafio = desafio;
@@ -164,12 +169,14 @@ function atualizarResiduos() {
     if (r.tocadoPor(jogador)) {
       r.recolhido = true;
       carregados++;
+      gestorAudio.tocarEfeito('itemPickUp');
     }
   }
 
   if (carregados > 0 && contentor.tocadoPor(jogador)) {
     entregues += carregados;
     carregados = 0;
+    gestorAudio.tocarEfeito('itemDrop');
   }
 
   if (residuos.length > 0 && entregues === residuos.length) terminarNivel();
@@ -196,6 +203,8 @@ function desenharMundo() {
 
 function terminarNivel() {
   const tempo = millis() - tempoInicio;
+  gestorAudio.pararMusica();
+  gestorAudio.tocarEfeito('endLevel');
   // O desafio aleatório não guarda tempos: cada mapa é diferente, não são comparáveis
   const recorde = modoDesafio ? false : stats.registar(nivelAtual, tempo, residuos.length);
   ultimoResultado = { nome: definicao.nome, total: residuos.length, tempo, recorde };
